@@ -44,9 +44,8 @@
         </div>
       }
     </section>
-    <section class="cards two-col">
-      <div class="card"><app-skeleton width="100%" height="280px" radius="12px" /></div>
-      <div class="card"><app-skeleton width="100%" height="380px" radius="12px" /></div>
+    <section class="card">
+      <app-skeleton width="100%" height="120px" radius="12px" />
     </section>
   } @else {
     @if (data(); as d) {
@@ -85,37 +84,19 @@
       </section>
     }
 
-    <section class="cards two-col">
-      <div class="card chart-card">
+    @if (topGenres().length > 0) {
+      <section class="card genres-card">
         <h2>Top gêneros</h2>
-        @if (d.genres.length > 0) {
-          <div class="chart-wrap">
-            <canvas baseChart
-              [type]="'doughnut'"
-              [data]="genreChartData()"
-              [options]="genreChartOptions()">
-            </canvas>
-          </div>
-        } @else {
-          <p class="empty-mini">Sem dados de gênero pra esse período.</p>
-        }
-      </div>
-
-      <div class="card chart-card">
-        <h2>Popularidade dos top artistas</h2>
-        @if (d.topArtists.length > 0) {
-          <div class="chart-wrap tall">
-            <canvas baseChart
-              [type]="'bar'"
-              [data]="popularityChartData()"
-              [options]="popularityChartOptions()">
-            </canvas>
-          </div>
-        } @else {
-          <p class="empty-mini">Sem dados de artistas.</p>
-        }
-      </div>
-    </section>
+        <div class="genre-chips" [@cascadeIn]="d.timeRange">
+          @for (g of topGenres(); track g.genre; let i = $index) {
+            <span class="genre-chip" [class.primary]="i === 0">
+              <span class="genre-name">{{ capitalize(g.genre) }}</span>
+              <span class="genre-count">{{ g.count }}</span>
+            </span>
+          }
+        </div>
+      </section>
+    }
 
     @if (d.recentPlays.length > 0) {
       <section class="card recent-card">

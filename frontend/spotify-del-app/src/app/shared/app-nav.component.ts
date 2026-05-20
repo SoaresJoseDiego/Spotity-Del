@@ -34,10 +34,6 @@ import { UserAvatarComponent } from './user-avatar.component';
           <mat-icon>cleaning_services</mat-icon>
           Triagem
         </a>
-        <a mat-button routerLink="/tinder" routerLinkActive="active">
-          <mat-icon>swipe</mat-icon>
-          Tinder
-        </a>
       </nav>
 
       <span class="spacer"></span>

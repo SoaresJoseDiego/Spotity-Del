@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChildren, QueryList, computed, effect, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -6,8 +6,6 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { BaseChartDirective } from 'ng2-charts';
-import { ChartConfiguration, ChartData } from 'chart.js';
 
 import { DashboardApi } from '../../core/api/dashboard.api';
 import { DashboardOverview, TimeRange } from '../../core/models/dashboard.model';
@@ -22,7 +20,7 @@ import { ShareDialogComponent } from './share-dialog.component';
 @Component({
   selector: 'app-dashboard-page',
   imports: [
-    DecimalPipe, AppNavComponent, UserAvatarComponent, SkeletonComponent, BaseChartDirective,
+    DecimalPipe, AppNavComponent, UserAvatarComponent, SkeletonComponent,
     MatButtonModule, MatIconModule, MatButtonToggleModule, MatDialogModule,
     MatProgressBarModule, MatTooltipModule,
   ],
@@ -36,97 +34,20 @@ export class DashboardPageComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   readonly theme = inject(ThemeService);
 
-  @ViewChildren(BaseChartDirective) private readonly charts!: QueryList<BaseChartDirective>;
-
   readonly user = this.auth.user;
   readonly loading = signal(false);
   readonly data = signal<DashboardOverview | null>(null);
   readonly timeRange = signal<TimeRange>('medium_term');
 
-  readonly genreChartData = computed<ChartData<'doughnut'>>(() => {
+  readonly topGenres = computed(() => {
     const d = this.data();
-    if (!d || d.genres.length === 0) return { labels: [], datasets: [{ data: [] }] };
-    return {
-      labels: d.genres.map(g => this.capitalize(g.genre)),
-      datasets: [{
-        data: d.genres.map(g => g.count),
-        backgroundColor: [
-          '#1db954', '#7c5cff', '#ff6f61', '#ffb74d', '#4fc3f7',
-          '#ba68c8', '#aed581', '#f06292', '#4dd0e1', '#ffd54f',
-        ],
-        borderColor: 'transparent',
-        hoverOffset: 8,
-      }],
-    };
-  });
-
-  readonly genreChartOptions = computed<ChartConfiguration<'doughnut'>['options']>(() => {
-    const isDark = this.theme.isDark();
-    const text = isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.85)';
-    return {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'right',
-          labels: { color: text, boxWidth: 12, padding: 12 },
-        },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => ` ${ctx.label}: ${ctx.parsed} artistas no top`,
-          },
-        },
-      },
-      cutout: '60%',
-    };
-  });
-
-  readonly popularityChartData = computed<ChartData<'bar'>>(() => {
-    const d = this.data();
-    if (!d) return { labels: [], datasets: [{ data: [] }] };
-    const top = d.topArtists.slice(0, 10);
-    return {
-      labels: top.map(a => a.name),
-      datasets: [{
-        data: top.map(a => a.popularity),
-        label: 'Popularidade (0-100)',
-        backgroundColor: '#1db954',
-        borderRadius: 4,
-      }],
-    };
-  });
-
-  readonly popularityChartOptions = computed<ChartConfiguration<'bar'>['options']>(() => {
-    const isDark = this.theme.isDark();
-    const text = isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.85)';
-    const grid = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
-    return {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: (ctx) => ` Popularidade: ${ctx.parsed.x}` } },
-      },
-      scales: {
-        x: { beginAtZero: true, max: 100, ticks: { color: text }, grid: { color: grid } },
-        y: { ticks: { color: text }, grid: { color: 'transparent' } },
-      },
-    };
+    return d ? d.genres.slice(0, 8) : [];
   });
 
   constructor() {
     effect(() => {
       const _ = this.timeRange();
       this.load();
-    });
-
-    // Force-update the charts whenever data or theme changes; ng2-charts + Angular
-    // signals don't always detect input changes on its own in v6.
-    effect(() => {
-      this.data();
-      this.theme.isDark();
-      queueMicrotask(() => this.charts?.forEach(c => c.update()));
     });
   }
 
@@ -167,7 +88,7 @@ export class DashboardPageComponent implements OnInit {
     return `${m}:${s.toString().padStart(2, '0')}`;
   }
 
-  private capitalize(s: string): string {
+  capitalize(s: string): string {
     return s.length === 0 ? s : s[0].toUpperCase() + s.slice(1);
   }
 }
