@@ -1,10 +1,12 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-COPY backend/SpotifyDel.slnx ./
 COPY backend/src ./src
 
-RUN dotnet restore SpotifyDel.slnx
+# Restore + publish only the Api project; it transitively pulls Application,
+# Domain and Infrastructure. The .slnx also references tests which aren't
+# needed (or shipped) in production.
+RUN dotnet restore src/SpotifyDel.Api/SpotifyDel.Api.csproj
 RUN dotnet publish src/SpotifyDel.Api/SpotifyDel.Api.csproj \
     -c Release \
     -o /app \
