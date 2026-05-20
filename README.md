@@ -40,7 +40,6 @@ App pra limpar e analisar sua biblioteca do Spotify em massa, com filtros inteli
 
 ```
 SpotifyDel/
-├── CLAUDE.md            # arquitetura, convenções, fluxo OAuth, migração Feb/2026 Spotify
 ├── README.md
 ├── Dockerfile           # backend prod build (multi-stage)
 ├── render.yaml          # deploy do backend no Render
@@ -142,7 +141,7 @@ E o frontend público em **User Management** → adicione o email Spotify de cad
 ## Limitações conhecidas
 
 - **Dev mode do Spotify**: só 5 usuários cadastrados manualmente podem usar o app. Sem isso retorna 403 silencioso em qualquer write.
-- **Migração de endpoints Feb/2026**: `/me/tracks` (write/contains) virou `/me/library`; `/playlists/{id}/tracks` virou `/items`. Já tratado no código — ver [CLAUDE.md](./CLAUDE.md).
+- **Migração de endpoints Feb/2026**: `/me/tracks` (write/contains) virou `/me/library`; `/playlists/{id}/tracks` virou `/items`. Já tratado no código.
 - **`preview_url` de track**: o Spotify não disponibiliza preview de áudio pra todas as faixas; quando não tem, o modo Tinder mostra "preview indisponível".
 - **Recently played**: API só retorna últimas 50 reproduções. O coletor em background acumula localmente — em algumas semanas você terá dado suficiente pra filtros tipo "não escuto há X".
 
