@@ -1,0 +1,143 @@
+<app-nav />
+
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+<div class="page">
+  <header class="hero">
+    @if (user()) {
+      <app-user-avatar [url]="user()!.avatarUrl" [name]="user()!.displayName" [size]="72" />
+    }
+    <div class="hero-text">
+      <h1>Olá, {{ user()?.displayName }}</h1>
+      <p class="subtitle">Seu retrato musical · {{ timeRangeLabel() }}</p>
+    </div>
+
+    <mat-button-toggle-group
+      [value]="timeRange()"
+      (change)="setTimeRange($event.value)"
+      class="range-toggle">
+      <mat-button-toggle value="short_term"  matTooltip="Últimas 4 semanas">4 sem</mat-button-toggle>
+      <mat-button-toggle value="medium_term" matTooltip="Últimos 6 meses">6 mes</mat-button-toggle>
+      <mat-button-toggle value="long_term"   matTooltip="Histórico de sempre">sempre</mat-button-toggle>
+    </mat-button-toggle-group>
+  </header>
+
+  @if (data(); as d) {
+    <section class="cards big-numbers">
+      <div class="card stat">
+        <mat-icon class="stat-icon">favorite</mat-icon>
+        <div class="stat-value">{{ d.likedTotal | number }}</div>
+        <div class="stat-label">curtidas</div>
+      </div>
+      <div class="card stat">
+        <mat-icon class="stat-icon">queue_music</mat-icon>
+        <div class="stat-value">{{ d.playlistTotal | number }}</div>
+        <div class="stat-label">playlists</div>
+      </div>
+      <div class="card stat">
+        <mat-icon class="stat-icon">person</mat-icon>
+        <div class="stat-value">{{ d.topArtists.length }}</div>
+        <div class="stat-label">top artistas</div>
+      </div>
+      <div class="card stat">
+        <mat-icon class="stat-icon">category</mat-icon>
+        <div class="stat-value">{{ d.genres.length }}</div>
+        <div class="stat-label">gêneros distintos</div>
+      </div>
+    </section>
+
+    @if (d.insights.length > 0) {
+      <section class="insights">
+        @for (i of d.insights; track i.label) {
+          <div class="insight">
+            <div class="insight-label">{{ i.label }}</div>
+            <div class="insight-value">{{ i.value }}</div>
+            @if (i.hint) { <div class="insight-hint">{{ i.hint }}</div> }
+          </div>
+        }
+      </section>
+    }
+
+    <section class="cards two-col">
+      <div class="card chart-card">
+        <h2>Top gêneros</h2>
+        @if (d.genres.length > 0) {
+          <div class="chart-wrap">
+            <canvas baseChart
+              [type]="'doughnut'"
+              [data]="genreChartData()"
+              [options]="genreChartOptions()">
+            </canvas>
+          </div>
+        } @else {
+          <p class="empty-mini">Sem dados de gênero pra esse período.</p>
+        }
+      </div>
+
+      <div class="card chart-card">
+        <h2>Popularidade dos top artistas</h2>
+        @if (d.topArtists.length > 0) {
+          <div class="chart-wrap tall">
+            <canvas baseChart
+              [type]="'bar'"
+              [data]="popularityChartData()"
+              [options]="popularityChartOptions()">
+            </canvas>
+          </div>
+        } @else {
+          <p class="empty-mini">Sem dados de artistas.</p>
+        }
+      </div>
+    </section>
+
+    <section class="cards two-col">
+      <div class="card">
+        <h2>Top artistas</h2>
+        <div class="artist-grid">
+          @for (a of d.topArtists; track a.id; let i = $index) {
+            <div class="artist-card">
+              <div class="rank">#{{ i + 1 }}</div>
+              @if (a.imageUrl) {
+                <img [src]="a.imageUrl" [alt]="a.name" class="artist-img" />
+              } @else {
+                <div class="artist-img placeholder"><mat-icon>person</mat-icon></div>
+              }
+              <div class="artist-name">{{ a.name }}</div>
+              @if (a.genres.length > 0) {
+                <div class="artist-sub">{{ a.genres[0] }}</div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Top faixas</h2>
+        <ol class="track-list">
+          @for (t of d.topTracks; track t.id) {
+            <li class="track">
+              @if (t.albumImageUrl) {
+                <img [src]="t.albumImageUrl" [alt]="t.albumName" class="track-cover" />
+              } @else {
+                <div class="track-cover placeholder"><mat-icon>music_note</mat-icon></div>
+              }
+              <div class="track-meta">
+                <a [href]="t.externalUrl" target="_blank" rel="noopener" class="track-name">{{ t.name }}</a>
+                <div class="track-artists">
+                  @for (a of t.artists; track a.id) {
+                    <span>{{ a.name }}</span>@if (!$last) { <span>, </span> }
+                  }
+                </div>
+              </div>
+              <div class="track-dur">{{ formatDuration(t.durationMs) }}</div>
+            </li>
+          }
+        </ol>
+      </div>
+    </section>
+  } @else if (!loading()) {
+    <div class="empty">Não foi possível carregar o dashboard.</div>
+  }
+</div>

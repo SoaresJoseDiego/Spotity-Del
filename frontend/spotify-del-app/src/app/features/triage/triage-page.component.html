@@ -1,0 +1,125 @@
+<app-nav />
+
+@if (scanning() || removing()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+<div class="page">
+  @if (!snapshot()) {
+    <div class="intro">
+      <mat-icon class="big">cleaning_services</mat-icon>
+      <h1>Triagem da biblioteca</h1>
+      <p>
+        Cruza suas <strong>curtidas</strong> e <strong>todas as playlists</strong> que você pode editar
+        pra você remover músicas de várias origens de uma vez só. Útil pra achar duplicadas e desafogar a biblioteca.
+      </p>
+      <button mat-flat-button color="primary" (click)="scan()" [disabled]="scanning()">
+        <mat-icon>search</mat-icon>
+        @if (scanning()) { Escaneando... } @else { Escanear minha biblioteca }
+      </button>
+      <p class="hint">Pode demorar alguns segundos dependendo do tamanho da sua biblioteca.</p>
+    </div>
+  } @else {
+    <header class="summary">
+      <h1>Triagem</h1>
+      <div class="stats">
+        <span><strong>{{ snapshot()!.tracks.length }}</strong> faixas únicas</span>
+        <span class="dot">·</span>
+        <span><strong>{{ snapshot()!.likedCount }}</strong> curtidas</span>
+        <span class="dot">·</span>
+        <span><strong>{{ snapshot()!.playlistCount }}</strong> playlists editáveis</span>
+      </div>
+      <button mat-stroked-button (click)="scan()" [disabled]="scanning()">
+        <mat-icon>refresh</mat-icon>
+        Reescanear
+      </button>
+    </header>
+
+    <section class="filters">
+      <mat-checkbox [checked]="onlyDuplicates()" (change)="onlyDuplicates.set($event.checked)">
+        Só duplicadas (em 2+ origens)
+      </mat-checkbox>
+      <mat-form-field appearance="outline" class="min-occ">
+        <mat-label>Artista repete ≥</mat-label>
+        <input matInput type="number" min="2"
+               [ngModel]="minArtistOccurrences()"
+               (ngModelChange)="minArtistOccurrences.set($event)">
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="search">
+        <mat-label>Buscar</mat-label>
+        <input matInput type="text"
+               [ngModel]="search()"
+               (ngModelChange)="search.set($event)"
+               placeholder="nome ou artista">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+      <span class="filter-count">{{ filtered().length }} mostradas</span>
+    </section>
+
+    @if (selectedCount() > 0) {
+      <div class="selection-bar">
+        <mat-checkbox [checked]="allFilteredSelected()"
+                      (change)="toggleAllFiltered($event.checked)">
+          Selecionar todas filtradas
+        </mat-checkbox>
+        <span class="info">
+          <strong>{{ selectedCount() }}</strong> selecionada(s) ·
+          irá remover de <strong>{{ originsToRemove() }}</strong> origens
+        </span>
+        <button mat-button (click)="clearSelection()">Limpar</button>
+        <button mat-flat-button color="warn" [disabled]="removing()" (click)="removeSelected()">
+          <mat-icon>delete_sweep</mat-icon>
+          Remover de todas as origens
+        </button>
+      </div>
+    }
+
+    <div class="track-list">
+      @for (t of filtered(); track t.id) {
+        <div class="track" [class.selected]="isSelected(t.id)" [class.dup]="t.originsCount >= 2">
+          <mat-checkbox [checked]="isSelected(t.id)" (change)="toggle(t, $event.checked)" />
+
+          @if (t.imageUrl) {
+            <img [src]="t.imageUrl" [alt]="t.name" class="cover" />
+          } @else {
+            <div class="cover cover-placeholder"><mat-icon>music_note</mat-icon></div>
+          }
+
+          <div class="meta">
+            <a [href]="t.externalUrl" target="_blank" rel="noopener" class="title">{{ t.name }}</a>
+            <div class="artists">
+              @for (a of t.artists; track a.id) {
+                <span>{{ a.name }}</span>@if (!$last) { <span>, </span> }
+              }
+            </div>
+            <div class="origins">
+              @if (t.inLiked) {
+                <span class="badge liked" [matTooltip]="'Curtida em ' + (t.likedAt | date:'dd MMM yyyy')">
+                  <mat-icon inline>favorite</mat-icon>
+                  Curtidas
+                </span>
+              }
+              @for (p of t.inPlaylists; track p.id) {
+                <span class="badge playlist" [matTooltip]="p.canEdit ? 'Você pode editar' : 'Read-only'">
+                  <mat-icon inline>queue_music</mat-icon>
+                  {{ p.name }}
+                </span>
+              }
+            </div>
+          </div>
+
+          <div class="extra">
+            <span>{{ formatDuration(t.durationMs) }}</span>
+            @if (t.originsCount >= 2) {
+              <span class="dup-badge" matTooltip="Aparece em mais de uma origem">
+                {{ t.originsCount }}×
+              </span>
+            }
+          </div>
+        </div>
+      } @empty {
+        <div class="empty">Nenhuma faixa bateu com os filtros.</div>
+      }
+    </div>
+  }
+</div>

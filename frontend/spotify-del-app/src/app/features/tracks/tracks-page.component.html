@@ -1,0 +1,83 @@
+<app-nav />
+
+@if (loading() || removing()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+<div class="page-header">
+  <h1>Curtidas ({{ total() }})</h1>
+  <button mat-stroked-button (click)="openFilters()">
+    <mat-icon>filter_alt</mat-icon>
+    Filtros
+  </button>
+</div>
+
+@if (selectedCount() > 0) {
+  <div class="selection-bar">
+    <mat-checkbox
+      [checked]="allOnPageSelected()"
+      (change)="toggleAllOnPage($event.checked)">
+      Selecionar todas desta página
+    </mat-checkbox>
+    <span class="selection-info">{{ selectedCount() }} selecionada(s)</span>
+    <button mat-button (click)="clearSelection()">Limpar</button>
+    <button
+      mat-flat-button
+      color="warn"
+      [disabled]="removing()"
+      (click)="removeSelected()">
+      <mat-icon>delete</mat-icon>
+      Remover selecionadas
+    </button>
+  </div>
+}
+
+<div class="track-list">
+  @for (track of tracks(); track track.id) {
+    <div class="track" [class.selected]="isSelected(track.id)">
+      <mat-checkbox
+        [checked]="isSelected(track.id)"
+        (change)="toggle(track, $event.checked)" />
+
+      @if (track.album.imageUrl) {
+        <img [src]="track.album.imageUrl" [alt]="track.album.name" class="cover" />
+      } @else {
+        <div class="cover cover-placeholder">
+          <mat-icon>music_note</mat-icon>
+        </div>
+      }
+
+      <div class="meta">
+        <a [href]="track.externalUrl" target="_blank" rel="noopener" class="title">
+          {{ track.name }}
+        </a>
+        <div class="artists">
+          @for (artist of track.artists; track artist.id) {
+            <span>{{ artist.name }}</span>
+            @if (!$last) { <span class="sep">, </span> }
+          }
+          <span class="album"> · {{ track.album.name }}</span>
+        </div>
+      </div>
+
+      <div class="extra">
+        <span class="duration">{{ formatDuration(track.durationMs) }}</span>
+        <span class="added" matTooltip="Data em que você curtiu">
+          {{ track.addedAt | date:'dd MMM yyyy' }}
+        </span>
+      </div>
+    </div>
+  } @empty {
+    @if (!loading()) {
+      <div class="empty">Você ainda não tem músicas curtidas.</div>
+    }
+  }
+</div>
+
+@if (hasMore() && tracks().length > 0) {
+  <div class="load-more">
+    <button mat-stroked-button (click)="loadMore()" [disabled]="loading()">
+      Carregar mais ({{ total() - tracks().length }} restantes)
+    </button>
+  </div>
+}

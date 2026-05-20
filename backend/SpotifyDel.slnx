@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SpotifyDel.Api/SpotifyDel.Api.csproj" />
+    <Project Path="src/SpotifyDel.Application/SpotifyDel.Application.csproj" />
+    <Project Path="src/SpotifyDel.Domain/SpotifyDel.Domain.csproj" />
+    <Project Path="src/SpotifyDel.Infrastructure/SpotifyDel.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SpotifyDel.Tests/SpotifyDel.Tests.csproj" />
+  </Folder>
+</Solution>
