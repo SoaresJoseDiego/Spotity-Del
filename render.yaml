@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: spotifydel-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: ./
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: Spotify__ClientId
+        sync: false
+      - key: Spotify__ClientSecret
+        sync: false
+      - key: Spotify__RedirectUri
+        sync: false
+      - key: Frontend__BaseUrl
+        sync: false
+      - key: ConnectionStrings__Default
+        value: Data Source=/tmp/spotifydel.db

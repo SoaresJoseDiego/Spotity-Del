@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 
@@ -14,20 +15,25 @@ import { AuthService } from '../../core/auth/auth.service';
 import { ThemeService } from '../../core/theme/theme.service';
 import { AppNavComponent } from '../../shared/app-nav.component';
 import { UserAvatarComponent } from '../../shared/user-avatar.component';
+import { SkeletonComponent } from '../../shared/skeleton.component';
+import { cascadeIn } from '../../shared/animations';
+import { ShareDialogComponent } from './share-dialog.component';
 
 @Component({
   selector: 'app-dashboard-page',
   imports: [
-    DecimalPipe, AppNavComponent, UserAvatarComponent, BaseChartDirective,
-    MatButtonModule, MatIconModule, MatButtonToggleModule,
+    DecimalPipe, AppNavComponent, UserAvatarComponent, SkeletonComponent, BaseChartDirective,
+    MatButtonModule, MatIconModule, MatButtonToggleModule, MatDialogModule,
     MatProgressBarModule, MatTooltipModule,
   ],
   templateUrl: './dashboard-page.component.html',
   styleUrl: './dashboard-page.component.scss',
+  animations: [cascadeIn],
 })
 export class DashboardPageComponent implements OnInit {
   private readonly api = inject(DashboardApi);
   private readonly auth = inject(AuthService);
+  private readonly dialog = inject(MatDialog);
   readonly theme = inject(ThemeService);
 
   @ViewChildren(BaseChartDirective) private readonly charts!: QueryList<BaseChartDirective>;
@@ -135,6 +141,16 @@ export class DashboardPageComponent implements OnInit {
   }
 
   setTimeRange(tr: TimeRange) { this.timeRange.set(tr); }
+
+  openShare() {
+    const overview = this.data();
+    if (!overview) return;
+    this.dialog.open(ShareDialogComponent, {
+      data: { overview, userName: this.user()?.displayName ?? null },
+      maxWidth: '95vw',
+      width: '720px',
+    });
+  }
 
   timeRangeLabel(): string {
     switch (this.timeRange()) {

@@ -122,8 +122,10 @@ public sealed class AuthController(
     private CookieOptions ShortLivedCookie() => new()
     {
         HttpOnly = true,
+        // In prod the redirect from Spotify is a top-level cross-site GET; cookie must
+        // be SameSite=None + Secure to survive that hop on Chrome/Edge/Safari.
         Secure   = Request.IsHttps,
-        SameSite = SameSiteMode.Lax,
+        SameSite = Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax,
         Expires  = DateTimeOffset.UtcNow.AddMinutes(10),
         Path     = "/api/auth",
     };

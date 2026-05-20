@@ -6,10 +6,22 @@
 
 <div class="page-header">
   <h1>Curtidas ({{ total() }})</h1>
-  <button mat-stroked-button (click)="openFilters()">
-    <mat-icon>filter_alt</mat-icon>
-    Filtros
-  </button>
+
+  <div class="header-actions">
+    <mat-form-field appearance="outline" class="year-filter" subscriptSizing="dynamic">
+      <mat-label>Ano</mat-label>
+      <mat-select [ngModel]="yearFilter()" (ngModelChange)="yearFilter.set($event)">
+        <mat-option [value]="null">Todos</mat-option>
+        @for (y of availableYears(); track y) {
+          <mat-option [value]="y">{{ y }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <button mat-stroked-button (click)="openFilters()">
+      <mat-icon>filter_alt</mat-icon>
+      Filtros
+    </button>
+  </div>
 </div>
 
 @if (selectedCount() > 0) {
@@ -33,7 +45,20 @@
 }
 
 <div class="track-list">
-  @for (track of tracks(); track track.id) {
+  @if (loading() && tracks().length === 0) {
+    @for (i of [0,1,2,3,4,5,6,7]; track i) {
+      <div class="track">
+        <app-skeleton width="18px" height="18px" radius="3px" />
+        <app-skeleton width="56px" height="56px" radius="4px" />
+        <div style="display:flex;flex-direction:column;gap:.4rem;">
+          <app-skeleton width="60%" height="14px" />
+          <app-skeleton width="40%" height="12px" />
+        </div>
+        <app-skeleton width="40px" height="12px" />
+      </div>
+    }
+  }
+  @for (track of filteredTracks(); track track.id) {
     <div class="track" [class.selected]="isSelected(track.id)">
       <mat-checkbox
         [checked]="isSelected(track.id)"
@@ -69,7 +94,10 @@
     </div>
   } @empty {
     @if (!loading()) {
-      <div class="empty">Você ainda não tem músicas curtidas.</div>
+      <app-empty-state
+        icon="favorite_border"
+        title="Você ainda não tem músicas curtidas"
+        description="Curta uma música no Spotify pra ela aparecer aqui." />
     }
   }
 </div>

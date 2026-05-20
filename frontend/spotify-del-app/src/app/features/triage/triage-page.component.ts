@@ -14,6 +14,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { TriageApi } from '../../core/api/triage.api';
 import { LibrarySnapshot, RemovalItem, TriageTrack } from '../../core/models/triage.model';
 import { AppNavComponent } from '../../shared/app-nav.component';
+import { RemovalHistoryService } from '../../core/removal/removal-history.service';
 
 @Component({
   selector: 'app-triage-page',
@@ -28,6 +29,7 @@ import { AppNavComponent } from '../../shared/app-nav.component';
 export class TriagePageComponent {
   private readonly api = inject(TriageApi);
   private readonly snack = inject(MatSnackBar);
+  private readonly history = inject(RemovalHistoryService);
 
   readonly scanning = signal(false);
   readonly removing = signal(false);
@@ -142,6 +144,8 @@ export class TriagePageComponent {
     if (!ok) return;
 
     this.removing.set(true);
+    const snapshotTracks = snap.tracks.filter(t => sel.has(t.id));
+    const removedAt = new Date().toISOString();
     this.api.remove(items).subscribe({
       next: result => {
         this.removing.set(false);
@@ -151,6 +155,16 @@ export class TriagePageComponent {
           tracks: s.tracks.filter(t => !removedIds.has(t.id)),
         } : s);
         this.selected.set(new Set());
+        this.history.record(snapshotTracks.map(t => ({
+          trackId: t.id,
+          trackName: t.name,
+          artists: t.artists.map(a => a.name).join(', '),
+          removedAt,
+          source: 'triage' as const,
+          sourceLabel: t.inLiked
+            ? `liked + ${t.inPlaylists.length} playlist(s)`
+            : `${t.inPlaylists.length} playlist(s)`,
+        })));
 
         let msg = `Removidas: ${result.likedRemoved} das curtidas + ${result.playlistTracksRemoved} de playlists.`;
         if (result.failures.length > 0) msg += ` ${result.failures.length} falha(s).`;

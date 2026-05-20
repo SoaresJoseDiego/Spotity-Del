@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../core/auth/auth.service';
 import { ThemeService } from '../core/theme/theme.service';
+import { RemovalHistoryService } from '../core/removal/removal-history.service';
 import { UserAvatarComponent } from './user-avatar.component';
 
 @Component({
@@ -33,9 +34,19 @@ import { UserAvatarComponent } from './user-avatar.component';
           <mat-icon>cleaning_services</mat-icon>
           Triagem
         </a>
+        <a mat-button routerLink="/tinder" routerLinkActive="active">
+          <mat-icon>swipe</mat-icon>
+          Tinder
+        </a>
       </nav>
 
       <span class="spacer"></span>
+
+      <button mat-icon-button (click)="exportRemoved()"
+              [disabled]="removal.entries().length === 0"
+              [matTooltip]="removal.entries().length === 0 ? 'Sem remoções pra exportar' : 'Exportar ' + removal.entries().length + ' música(s) removida(s) em JSON'">
+        <mat-icon>download</mat-icon>
+      </button>
 
       <button mat-icon-button (click)="theme.toggle()"
               [matTooltip]="theme.isDark() ? 'Modo claro' : 'Modo escuro'">
@@ -73,8 +84,11 @@ export class AppNavComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   readonly theme = inject(ThemeService);
+  readonly removal = inject(RemovalHistoryService);
 
   readonly user = this.auth.user;
+
+  exportRemoved() { this.removal.exportJson(); }
 
   logout() {
     this.auth.logout().subscribe({

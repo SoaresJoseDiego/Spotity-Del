@@ -19,6 +19,7 @@
   h1 { margin: 0; font-weight: 500; }
   .subtitle { margin: 0.25rem 0 0; color: var(--app-text-muted); }
   .range-toggle { ::ng-deep .mat-button-toggle-label-content { padding: 0 0.75rem; line-height: 36px; } }
+  .share-btn mat-icon { margin-right: 0.5rem; }
 }
 
 .cards {
@@ -124,6 +125,83 @@
   color: var(--app-text-muted);
   text-align: center;
   padding: 2rem 0;
+}
+
+.recent-card { margin-bottom: 1.25rem; }
+.recent-strip {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+
+  &::-webkit-scrollbar { height: 6px; }
+  &::-webkit-scrollbar-thumb {
+    background: var(--app-border);
+    border-radius: 3px;
+  }
+}
+.recent-item {
+  flex: 0 0 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  text-decoration: none;
+  color: inherit;
+  scroll-snap-align: start;
+  transition: transform 0.15s;
+
+  &:hover {
+    transform: translateY(-2px);
+    .recent-name { color: var(--app-accent); }
+  }
+
+  img, .recent-cover-fallback {
+    width: 160px;
+    height: 160px;
+    border-radius: 8px;
+    object-fit: cover;
+    box-shadow: var(--app-shadow);
+  }
+  .recent-cover-fallback {
+    display: grid; place-items: center;
+    background: var(--app-hover);
+    color: var(--app-text-muted);
+  }
+
+  .recent-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.15s;
+  }
+  .recent-sub {
+    font-size: 0.8rem;
+    color: var(--app-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.25rem;
+}
+.skeleton-insight {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.75rem 1rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-left: 3px solid var(--app-accent);
+  border-radius: 8px;
 }
 
 .artist-grid {

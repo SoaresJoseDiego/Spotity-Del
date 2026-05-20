@@ -14,7 +14,8 @@ public sealed record DashboardOverview(
     IReadOnlyList<TopArtist> TopArtists,
     IReadOnlyList<TopTrack> TopTracks,
     IReadOnlyList<GenreSlice> Genres,
-    IReadOnlyList<DashboardInsight> Insights);
+    IReadOnlyList<DashboardInsight> Insights,
+    IReadOnlyList<RecentPlay> RecentPlays);
 
 public sealed class DashboardService(
     ISpotifyClient spotify,
@@ -32,13 +33,15 @@ public sealed class DashboardService(
         var topTracksTask   = spotify.GetTopTracksAsync(token, timeRange, 10, ct);
         var likedPageTask   = spotify.GetLikedTracksAsync(token, 0, 1, ct);
         var playlistsTask   = spotify.GetUserPlaylistsAsync(token, 0, 1, ct);
+        var recentPlaysTask = SafeRecentPlaysAsync(spotify, token, ct);
 
-        await Task.WhenAll(topArtistsTask, topTracksTask, likedPageTask, playlistsTask);
+        await Task.WhenAll(topArtistsTask, topTracksTask, likedPageTask, playlistsTask, recentPlaysTask);
 
         var topArtists  = await topArtistsTask;
         var topTracks   = await topTracksTask;
         var likedPage   = await likedPageTask;
         var playlistPage = await playlistsTask;
+        var recentPlays = await recentPlaysTask;
 
         var genres = topArtists
             .SelectMany(a => a.Genres)
@@ -57,7 +60,17 @@ public sealed class DashboardService(
             TopArtists:    topArtists.Take(10).ToList(),
             TopTracks:     topTracks,
             Genres:        genres,
-            Insights:      insights);
+            Insights:      insights,
+            RecentPlays:   recentPlays.Take(15).ToList());
+    }
+
+    // Recently-played is optional and shouldn't break the dashboard if it fails
+    // (e.g. user just authenticated and there's no data, or transient API hiccup).
+    private static async Task<IReadOnlyList<RecentPlay>> SafeRecentPlaysAsync(
+        ISpotifyClient spotify, string token, CancellationToken ct)
+    {
+        try { return await spotify.GetRecentlyPlayedAsync(token, ct); }
+        catch { return []; }
     }
 
     private static IReadOnlyList<DashboardInsight> BuildInsights(

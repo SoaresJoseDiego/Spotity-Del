@@ -1,9 +1,5 @@
 <app-nav />
 
-@if (loading()) {
-  <mat-progress-bar mode="indeterminate" />
-}
-
 <div class="page">
   <header class="hero">
     @if (user()) {
@@ -22,10 +18,39 @@
       <mat-button-toggle value="medium_term" matTooltip="Últimos 6 meses">6 mes</mat-button-toggle>
       <mat-button-toggle value="long_term"   matTooltip="Histórico de sempre">sempre</mat-button-toggle>
     </mat-button-toggle-group>
+
+    <button mat-stroked-button class="share-btn" (click)="openShare()" [disabled]="!data()">
+      <mat-icon>share</mat-icon>
+      Compartilhar
+    </button>
   </header>
 
-  @if (data(); as d) {
+  @if (loading() && !data()) {
     <section class="cards big-numbers">
+      @for (i of [0,1,2,3]; track i) {
+        <div class="card skeleton-card">
+          <app-skeleton width="22px"  height="22px" radius="50%" />
+          <app-skeleton width="80px"  height="32px" />
+          <app-skeleton width="60px"  height="12px" />
+        </div>
+      }
+    </section>
+    <section class="insights">
+      @for (i of [0,1,2,3]; track i) {
+        <div class="insight skeleton-insight">
+          <app-skeleton width="80px"  height="10px" />
+          <app-skeleton width="150px" height="18px" />
+          <app-skeleton width="100px" height="10px" />
+        </div>
+      }
+    </section>
+    <section class="cards two-col">
+      <div class="card"><app-skeleton width="100%" height="280px" radius="12px" /></div>
+      <div class="card"><app-skeleton width="100%" height="380px" radius="12px" /></div>
+    </section>
+  } @else {
+    @if (data(); as d) {
+    <section class="cards big-numbers" [@cascadeIn]="d.timeRange">
       <div class="card stat">
         <mat-icon class="stat-icon">favorite</mat-icon>
         <div class="stat-value">{{ d.likedTotal | number }}</div>
@@ -49,7 +74,7 @@
     </section>
 
     @if (d.insights.length > 0) {
-      <section class="insights">
+      <section class="insights" [@cascadeIn]="d.timeRange">
         @for (i of d.insights; track i.label) {
           <div class="insight">
             <div class="insight-label">{{ i.label }}</div>
@@ -92,10 +117,35 @@
       </div>
     </section>
 
+    @if (d.recentPlays.length > 0) {
+      <section class="card recent-card">
+        <h2>Tocando recentemente</h2>
+        <div class="recent-strip">
+          @for (r of d.recentPlays; track r.playedAt + r.trackId) {
+            <a class="recent-item" [href]="r.externalUrl" target="_blank" rel="noopener">
+              @if (r.albumImageUrl) {
+                <img [src]="r.albumImageUrl" [alt]="r.albumName" />
+              } @else {
+                <div class="recent-cover-fallback"><mat-icon>music_note</mat-icon></div>
+              }
+              <div class="recent-meta">
+                <div class="recent-name">{{ r.trackName }}</div>
+                <div class="recent-sub">
+                  @for (a of r.artists; track a.id) {
+                    <span>{{ a.name }}</span>@if (!$last) { <span>, </span> }
+                  }
+                </div>
+              </div>
+            </a>
+          }
+        </div>
+      </section>
+    }
+
     <section class="cards two-col">
       <div class="card">
         <h2>Top artistas</h2>
-        <div class="artist-grid">
+        <div class="artist-grid" [@cascadeIn]="d.timeRange">
           @for (a of d.topArtists; track a.id; let i = $index) {
             <div class="artist-card">
               <div class="rank">#{{ i + 1 }}</div>
@@ -115,7 +165,7 @@
 
       <div class="card">
         <h2>Top faixas</h2>
-        <ol class="track-list">
+        <ol class="track-list" [@cascadeIn]="d.timeRange">
           @for (t of d.topTracks; track t.id) {
             <li class="track">
               @if (t.albumImageUrl) {
@@ -137,7 +187,8 @@
         </ol>
       </div>
     </section>
-  } @else if (!loading()) {
-    <div class="empty">Não foi possível carregar o dashboard.</div>
+    } @else {
+      <div class="empty">Não foi possível carregar o dashboard.</div>
+    }
   }
 </div>

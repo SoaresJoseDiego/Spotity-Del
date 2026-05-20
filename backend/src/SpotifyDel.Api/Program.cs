@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.HttpOverrides;
 using SpotifyDel.Api;
 using SpotifyDel.Api.Auth;
 using SpotifyDel.Api.ErrorHandling;
@@ -19,16 +21,20 @@ builder.Services
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Cross-origin cookies (frontend on a different domain than the API) require
+// SameSite=None + Secure. In local dev we keep Lax so http works.
+var crossOriginCookies = builder.Environment.IsProduction();
+
 builder.Services
     .AddAuthentication(SessionClaims.Scheme)
     .AddCookie(SessionClaims.Scheme, opt =>
     {
-        opt.Cookie.Name        = "spotifydel.session";
-        opt.Cookie.HttpOnly    = true;
-        opt.Cookie.SameSite    = SameSiteMode.Lax;
-        opt.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-        opt.ExpireTimeSpan     = TimeSpan.FromDays(30);
-        opt.SlidingExpiration  = true;
+        opt.Cookie.Name         = "spotifydel.session";
+        opt.Cookie.HttpOnly     = true;
+        opt.Cookie.SameSite     = crossOriginCookies ? SameSiteMode.None : SameSiteMode.Lax;
+        opt.Cookie.SecurePolicy = crossOriginCookies ? CookieSecurePolicy.Always : CookieSecurePolicy.SameAsRequest;
+        opt.ExpireTimeSpan      = TimeSpan.FromDays(30);
+        opt.SlidingExpiration   = true;
 
         opt.Events.OnRedirectToLogin = ctx =>
         {
@@ -47,13 +53,26 @@ const string CorsPolicy = "spotifydel-frontend";
 builder.Services.AddCors(opt => opt.AddPolicy(CorsPolicy, policy =>
 {
     var frontendUrl = builder.Configuration["Frontend:BaseUrl"] ?? "http://localhost:4200";
-    policy.WithOrigins(frontendUrl)
+    var origins = frontendUrl
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    policy.WithOrigins(origins)
           .AllowAnyHeader()
           .AllowAnyMethod()
           .AllowCredentials();
 }));
 
+// Render/Heroku/etc terminate TLS at the edge and forward HTTP. Honor X-Forwarded-Proto
+// so Request.IsHttps is true in prod (cookies + ASP.NET need this).
+builder.Services.Configure<ForwardedHeadersOptions>(opt =>
+{
+    opt.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    opt.KnownNetworks.Clear();
+    opt.KnownProxies.Clear();
+});
+
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
 {
@@ -67,5 +86,7 @@ app.UseCors(CorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 app.Run();

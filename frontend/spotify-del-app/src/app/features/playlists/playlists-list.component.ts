@@ -9,12 +9,14 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { PlaylistsApi } from '../../core/api/playlists.api';
 import { Page, Playlist } from '../../core/models/track.model';
 import { AppNavComponent } from '../../shared/app-nav.component';
+import { SkeletonComponent } from '../../shared/skeleton.component';
+import { EmptyStateComponent } from '../../shared/empty-state.component';
 
 @Component({
   selector: 'app-playlists-list',
   imports: [
-    RouterLink, AppNavComponent, MatButtonModule, MatIconModule,
-    MatProgressBarModule, MatTooltipModule, MatSnackBarModule,
+    RouterLink, AppNavComponent, SkeletonComponent, EmptyStateComponent,
+    MatButtonModule, MatIconModule, MatProgressBarModule, MatTooltipModule, MatSnackBarModule,
   ],
   template: `
     <app-nav />
@@ -24,6 +26,15 @@ import { AppNavComponent } from '../../shared/app-nav.component';
       <h1>Suas playlists ({{ total() }})</h1>
 
       <div class="grid">
+        @if (loading() && playlists().length === 0) {
+          @for (i of [0,1,2,3,4,5,6,7]; track i) {
+            <div class="card">
+              <app-skeleton width="100%" height="180px" radius="4px" />
+              <app-skeleton width="80%" height="14px" />
+              <app-skeleton width="60%" height="10px" />
+            </div>
+          }
+        }
         @for (p of playlists(); track p.id) {
           <a [routerLink]="['/playlists', p.id]" class="card" [class.readonly]="!p.canEdit">
             @if (p.imageUrl) {
@@ -48,7 +59,10 @@ import { AppNavComponent } from '../../shared/app-nav.component';
           </a>
         } @empty {
           @if (!loading()) {
-            <div class="empty">Nenhuma playlist encontrada.</div>
+            <app-empty-state
+              icon="queue_music"
+              title="Nenhuma playlist encontrada"
+              description="Crie uma playlist no Spotify pra começar." />
           }
         }
       </div>

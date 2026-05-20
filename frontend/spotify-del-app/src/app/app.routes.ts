@@ -37,5 +37,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/triage/triage-page.component').then(m => m.TriagePageComponent),
   },
+  {
+    path: 'tinder',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/tinder/tinder-page.component').then(m => m.TinderPageComponent),
+  },
   { path: '**', redirectTo: '' },
 ];

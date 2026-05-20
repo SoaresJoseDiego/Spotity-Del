@@ -40,6 +40,16 @@ public sealed class DashboardController(DashboardService dashboard) : Controller
             }),
             genres = data.Genres.Select(g => new { genre = g.Genre, count = g.Count }),
             insights = data.Insights.Select(i => new { label = i.Label, value = i.Value, hint = i.Hint }),
+            recentPlays = data.RecentPlays.Select(r => new
+            {
+                trackId = r.TrackId,
+                trackName = r.TrackName,
+                albumName = r.AlbumName,
+                albumImageUrl = r.AlbumImageUrl,
+                artists = r.Artists.Select(a => new { id = a.Id, name = a.Name }),
+                externalUrl = r.ExternalUrl,
+                playedAt = r.PlayedAt,
+            }),
         });
     }
 }

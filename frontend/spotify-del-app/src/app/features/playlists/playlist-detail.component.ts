@@ -11,6 +11,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { PlaylistsApi } from '../../core/api/playlists.api';
 import { LikedTrack, Page } from '../../core/models/track.model';
 import { AppNavComponent } from '../../shared/app-nav.component';
+import { RemovalHistoryService } from '../../core/removal/removal-history.service';
 
 @Component({
   selector: 'app-playlist-detail',
@@ -85,6 +86,7 @@ export class PlaylistDetailComponent implements OnInit {
   private readonly api = inject(PlaylistsApi);
   private readonly snack = inject(MatSnackBar);
   private readonly router = inject(Router);
+  private readonly history = inject(RemovalHistoryService);
   private readonly pageSize = 100;
 
   readonly tracks = signal<LikedTrack[]>([]);
@@ -134,6 +136,8 @@ export class PlaylistDetailComponent implements OnInit {
     if (!confirm(`Remover ${ids.length} faixa(s) desta playlist?`)) return;
 
     this.removing.set(true);
+    const snapshot = this.tracks().filter(t => this.selected().has(t.id));
+    const removedAt = new Date().toISOString();
     this.api.removeTracks(this.id, ids).subscribe({
       next: () => {
         const removedSet = new Set(ids);
@@ -141,6 +145,14 @@ export class PlaylistDetailComponent implements OnInit {
         this.total.update(n => Math.max(0, n - ids.length));
         this.selected.set(new Set());
         this.removing.set(false);
+        this.history.record(snapshot.map(t => ({
+          trackId: t.id,
+          trackName: t.name,
+          artists: t.artists.map(a => a.name).join(', '),
+          removedAt,
+          source: 'playlist' as const,
+          sourceLabel: `playlist ${this.id}`,
+        })));
         this.snack.open(`${ids.length} faixa(s) removida(s) da playlist.`, 'OK', { duration: 4000 });
       },
       error: (err) => {

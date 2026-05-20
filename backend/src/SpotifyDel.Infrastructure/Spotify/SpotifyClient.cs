@@ -234,7 +234,18 @@ public sealed class SpotifyClient(HttpClient http) : ISpotifyClient
 
         return dto.Items
             .Where(i => i.Track is not null && !string.IsNullOrEmpty(i.Track.Id))
-            .Select(i => new RecentPlay(i.Track!.Id!, i.PlayedAt))
+            .Select(i =>
+            {
+                var t = i.Track!;
+                return new RecentPlay(
+                    t.Id!,
+                    t.Name ?? "(sem nome)",
+                    t.Album?.Name ?? "(sem álbum)",
+                    t.Album?.Images?.FirstOrDefault()?.Url,
+                    t.Artists?.Select(a => new Artist(a.Id, a.Name)).ToList() ?? [],
+                    t.ExternalUrls?.GetValueOrDefault("spotify") ?? $"https://open.spotify.com/track/{t.Id}",
+                    i.PlayedAt);
+            })
             .ToList();
     }
 

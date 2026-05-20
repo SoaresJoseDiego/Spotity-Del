@@ -32,6 +32,16 @@ export interface DashboardInsight {
   hint: string | null;
 }
 
+export interface RecentPlay {
+  trackId: string;
+  trackName: string;
+  albumName: string;
+  albumImageUrl: string | null;
+  artists: Artist[];
+  externalUrl: string;
+  playedAt: string;
+}
+
 export interface DashboardOverview {
   likedTotal: number;
   playlistTotal: number;
@@ -40,4 +50,5 @@ export interface DashboardOverview {
   topTracks: TopTrack[];
   genres: GenreSlice[];
   insights: DashboardInsight[];
+  recentPlays: RecentPlay[];
 }

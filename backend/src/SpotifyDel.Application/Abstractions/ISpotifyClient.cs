@@ -60,7 +60,14 @@ public interface ISpotifyClient
         CancellationToken ct);
 }
 
-public sealed record RecentPlay(string TrackId, DateTimeOffset PlayedAt);
+public sealed record RecentPlay(
+    string TrackId,
+    string TrackName,
+    string AlbumName,
+    string? AlbumImageUrl,
+    IReadOnlyList<Artist> Artists,
+    string ExternalUrl,
+    DateTimeOffset PlayedAt);
 
 public sealed record TopArtist(
     string Id,
