@@ -118,6 +118,12 @@ import { UserAvatarComponent } from './user-avatar.component';
       top: 0;
       z-index: 10;
       gap: 0.5rem;
+      /* PWA in standalone/iOS extends behind the status bar. Inset padding keeps
+         the toolbar content tappable below the system area. */
+      padding-top: env(safe-area-inset-top);
+      padding-left: max(0.5rem, env(safe-area-inset-left));
+      padding-right: max(0.5rem, env(safe-area-inset-right));
+      box-sizing: content-box;
     }
     .hamburger { display: none; }
     .brand-icon { margin-right: 0.25rem; }
@@ -154,6 +160,8 @@ import { UserAvatarComponent } from './user-avatar.component';
       display: flex;
       flex-direction: column;
       box-shadow: 2px 0 24px rgba(0, 0, 0, 0.35);
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
     }
     .drawer.open { transform: translateX(0); }
 
