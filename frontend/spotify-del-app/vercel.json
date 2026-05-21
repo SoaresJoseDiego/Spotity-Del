@@ -5,7 +5,9 @@
   "framework": null,
   "installCommand": "npm install --legacy-peer-deps",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/api/(.*)", "destination": "https://spotifydel-api.onrender.com/api/$1" },
+    { "source": "/health",   "destination": "https://spotifydel-api.onrender.com/health" },
+    { "source": "/(.*)",     "destination": "/index.html" }
   ],
   "headers": [
     {
