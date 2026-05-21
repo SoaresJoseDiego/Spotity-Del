@@ -14,6 +14,7 @@ import { UserAvatarComponent } from './user-avatar.component';
   selector: 'app-nav',
   imports: [RouterLink, RouterLinkActive, MatToolbarModule, MatButtonModule, MatIconModule, MatTooltipModule, UserAvatarComponent],
   template: `
+   <header class="topbar-frame">
     <mat-toolbar color="primary" class="topbar">
       <button mat-icon-button class="hamburger" (click)="toggleDrawer()" aria-label="Abrir menu">
         <mat-icon>menu</mat-icon>
@@ -62,6 +63,7 @@ import { UserAvatarComponent } from './user-avatar.component';
         <mat-icon>logout</mat-icon>
       </button>
     </mat-toolbar>
+   </header>
 
     @if (drawerOpen()) {
       <div class="drawer-backdrop" (click)="closeDrawer()" aria-hidden="true"></div>
@@ -113,22 +115,21 @@ import { UserAvatarComponent } from './user-avatar.component';
     </aside>
   `,
   styles: [`
-    .topbar {
+    /* The frame is the sticky element. It paints the same green as the toolbar so the
+       safe area (under the iOS notch / Android status bar) looks unified. The toolbar
+       itself stays unmodified — fighting Material's internal padding/min-height was
+       fragile, so the wrapper handles the inset and lets mat-toolbar do its thing. */
+    .topbar-frame {
       position: sticky;
       top: 0;
       z-index: 10;
-      gap: 0.5rem;
-      /* iOS PWA / Android standalone paints behind the status bar (viewport-fit=cover
-         + apple-mobile-web-app-status-bar-style=black-translucent). The toolbar gets a
-         safe-area-inset-top of padding, AND the min-height grows by the same amount so
-         Material's border-box doesn't squeeze the content area into the notch. */
+      background: #1db954;
       padding-top: env(safe-area-inset-top);
-      padding-left: max(0.5rem, env(safe-area-inset-left));
-      padding-right: max(0.5rem, env(safe-area-inset-right));
-      min-height: calc(64px + env(safe-area-inset-top)) !important;
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
     }
-    @media (max-width: 599.98px) {
-      .topbar { min-height: calc(56px + env(safe-area-inset-top)) !important; }
+    .topbar {
+      gap: 0.5rem;
     }
     .hamburger { display: none; }
     .brand-icon { margin-right: 0.25rem; }
