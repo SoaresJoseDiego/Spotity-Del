@@ -118,12 +118,17 @@ import { UserAvatarComponent } from './user-avatar.component';
       top: 0;
       z-index: 10;
       gap: 0.5rem;
-      /* PWA in standalone/iOS extends behind the status bar. Inset padding keeps
-         the toolbar content tappable below the system area. */
+      /* iOS PWA / Android standalone paints behind the status bar (viewport-fit=cover
+         + apple-mobile-web-app-status-bar-style=black-translucent). The toolbar gets a
+         safe-area-inset-top of padding, AND the min-height grows by the same amount so
+         Material's border-box doesn't squeeze the content area into the notch. */
       padding-top: env(safe-area-inset-top);
       padding-left: max(0.5rem, env(safe-area-inset-left));
       padding-right: max(0.5rem, env(safe-area-inset-right));
-      box-sizing: content-box;
+      min-height: calc(64px + env(safe-area-inset-top)) !important;
+    }
+    @media (max-width: 599.98px) {
+      .topbar { min-height: calc(56px + env(safe-area-inset-top)) !important; }
     }
     .hamburger { display: none; }
     .brand-icon { margin-right: 0.25rem; }
